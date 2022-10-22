@@ -1,0 +1,15 @@
+<form action='/api/payments/processTransaction' method='POST' id='checkout-form'>
+    <input type='hidden' th:value='${amount}' name='amount' />
+    <label>Price:<span th:text='${amount/100}' /></label>
+    <script
+            src='https://checkout.stripe.com/checkout.js'
+            class='stripe-button'
+            th:attr='data-key=${stripePublicKey},
+   data-amount=${amount},
+         data-currency=${currency}'
+            data-name='softworare'
+            data-description='Spring course checkout'
+            data-locale='auto'
+            data-zip-code='false'>
+    </script>
+</form>

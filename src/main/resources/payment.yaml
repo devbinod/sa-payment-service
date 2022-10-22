@@ -1,0 +1,256 @@
+openapi: 3.0.0
+info:
+  title: Payment Service
+  description: Booking Service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8083/api
+tags:
+  - name: PaymentDetail
+
+paths:
+  /payments:
+    get:
+      operationId: getAllPayment
+      summary: Return list of Payment Detail
+      tags:
+        - PaymentDetail
+      responses:
+        '200':
+          description: List of the Payment Details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentResponseDto'
+    post:
+      operationId: savePayment
+      summary: Save Payment
+      tags:
+        - PaymentDetail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestDto'
+      responses:
+        '201':
+          description: Booking Details Successfully Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseDto'
+  /payments/{id}:
+    get:
+      operationId: getPaymentById
+      summary: Returns a payment details by ID.
+      tags:
+        - PaymentDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payement Details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseDto'
+    delete:
+      operationId: deletePaymentById
+      summary: Delete a Payment detail by ID.
+      tags:
+        - PaymentDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted payment details
+    put:
+      operationId: updatePaymentById
+      summary: Update Payment Details
+      tags:
+        - PaymentDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequestDto'
+      responses:
+        '201':
+          description: Successfully Updated Booking Details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseDto'
+  /payments/processTransaction:
+    post:
+      operationId: processTransaction
+      summary: Save Payment
+      tags:
+        - PaymentDetail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StripPaymentDetailRequest'
+      responses:
+        '201':
+          description: Booking Details Successfully Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseDto'
+
+
+components:
+  schemas:
+    PaymentRequestDto:
+      required:
+        - bookingId
+        - vehicleId
+        - totalPrice
+        - paymentType
+      properties:
+        bookingId:
+          type: string
+        vehicleId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+        token:
+          type: string
+        tokenType:
+          type: string
+
+
+    PaymentResponseDto:
+      required:
+        - id
+        - bookingId
+        - totalPrice
+        - paymentType
+        - vehicleId
+        - createdDate
+        - userId
+      properties:
+        id:
+          type: string
+        bookingId:
+          type: string
+        vehicleId:
+          type: string
+        userId:
+          type: string
+        totalPrice:
+          type: number
+        createdDate:
+          type: string
+          format: date
+        description:
+          type: string
+        paymentType:
+          type: string
+
+
+    PaymentDetailsRequest:
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+        token:
+          type: string
+
+    StripPaymentDetailRequest:
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+        token:
+          type: string
+        tokenType:
+          type: string
+
+    PaymentType:
+      type: string
+      enum:
+        - PAYPAL
+        - DEBIT_CARD
+        - CREDIT_CARD
+    PaymentTypeStatus:
+      type: string
+      enum:
+        - succeeded
+        - PAYMENT_FAILED
+
+
+    BookingResponseDto:
+      required:
+        - bookingId
+        - vehicleId
+        - pickupDate
+        - returnDate
+        - userId
+        - totalPrice
+        - createdDate
+      properties:
+        bookingId:
+          type: string
+        vehicleId:
+          type: string
+        pickupDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+        userId:
+          type: string
+        totalPrice:
+          type: number
+        createdDate:
+          type: string
+          format: date
+        bookingStatus:
+          $ref: '#/components/schemas/BookingStatus'
+
+    BookingStatus:
+      type: string
+      enum:
+        - PENDING
+        - COMPLETED
+        - FAILED
+
+    BookingUpdateRequestDto:
+      properties:
+        bookingId:
+          type: string
+        bookingStatus:
+          $ref: '#/components/schemas/BookingStatus'
