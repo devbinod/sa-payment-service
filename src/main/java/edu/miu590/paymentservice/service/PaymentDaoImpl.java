@@ -8,10 +8,13 @@ import edu.miu590.paymentservice.model.*;
 import edu.miu590.paymentservice.repository.PaymentRepository;
 
 import feign.FeignException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @Service
@@ -22,18 +25,29 @@ public class PaymentDaoImpl implements PaymentDao {
     private PaymentRepository paymentRepository;
     private PaymentMapper paymentMapper;
     private BookingClient bookingClient;
+    private KafkaTemplate<Object,Object> kafkaTemplate;
 
-    public PaymentDaoImpl(StripeService stripeService, PaymentRepository paymentRepository, PaymentMapper paymentMapper, BookingClient bookingClient) {
+
+
+    @Value("${booking.payment-info.service.kafka.topic}")
+    private String bookingTopic;
+
+    public PaymentDaoImpl(StripeService stripeService,
+                          PaymentRepository paymentRepository,
+                          PaymentMapper paymentMapper,
+                          BookingClient bookingClient,
+                          KafkaTemplate<Object, Object> kafkaTemplate) {
         this.stripeService = stripeService;
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.bookingClient = bookingClient;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
     public PaymentResponseDto save(PaymentRequestDto paymentRequestDto) throws FeignException.FeignClientException {
 
-        BookingResponseDto bookingResponseDto = bookingClient.findById(paymentRequestDto.getBookingId());
+//        BookingResponseDto bookingResponseDto = bookingClient.findById(paymentRequestDto.getBookingId());
 
         Charge charge = stripeService.charge(paymentRequestDto);
 
@@ -49,12 +63,25 @@ public class PaymentDaoImpl implements PaymentDao {
                 .build();
 
         paymentRepository.save(payment);
-        bookingResponseDto = bookingClient.updateBookingStatus(BookingUpdateRequestDto.builder()
-                .bookingId(bookingResponseDto.getBookingId())
-                .bookingStatus(status == PaymentTypeStatus.PAYMENT_FAILED.toString() ?
+
+
+      BookingUpdateRequestDto bookingUpdateRequestDto =  BookingUpdateRequestDto.builder()
+                .bookingId(paymentRequestDto.getBookingId())
+                .bookingStatus(Objects.equals(status, PaymentTypeStatus.PAYMENT_FAILED.toString()) ?
                         BookingStatus.FAILED : BookingStatus.COMPLETED
-                ).build()
-        );
+                )
+              .email(paymentRequestDto.getEmail())
+              .totalPrice(paymentRequestDto.getAmount())
+              .build();
+
+//        bookingResponseDto = bookingClient.updateBookingStatus(BookingUpdateRequestDto.builder()
+//                .bookingId(bookingResponseDto.getBookingId())
+//                .bookingStatus(Objects.equals(status, PaymentTypeStatus.PAYMENT_FAILED.toString()) ?
+//                        BookingStatus.FAILED : BookingStatus.COMPLETED
+//                ).build()
+//        );
+
+        kafkaTemplate.send(bookingTopic,bookingUpdateRequestDto);
         return paymentMapper.toDto(payment);
 
     }
