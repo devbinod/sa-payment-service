@@ -41,17 +41,6 @@ public class PaymentController implements PaymentsApi {
         return ResponseEntity.ok(paymentDao.save(paymentRequestDto));
     }
 
-//    @Override
-//    public ResponseEntity<PaymentResponseDto> processTransaction(BigDecimal amount, String stripeEmail, String stripeToken, String stripeTokenType) {
-//        StripPaymentDetailRequest.builder()
-//                .amount(amount)
-//                .stripeEmail(stripeEmail)
-//                .stripeToken(stripeToken)
-//                .stripeTokenType(stripeTokenType);
-//
-//        return PaymentsApi.super.processTransaction(amount, stripeEmail, stripeToken, stripeTokenType);
-//    }
-
 
 
 }
