@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 public interface BookingClient {
 
 
-    @GetMapping("/bookings/{id}")
+    @GetMapping("/{id}")
     BookingResponseDto findById(@PathVariable String id);
-    @PutMapping("/bookings/update/bookingstatus")
+    @PutMapping("/update/bookingstatus")
     BookingResponseDto updateBookingStatus(BookingUpdateRequestDto bookingUpdateRequestDto);
 
 
