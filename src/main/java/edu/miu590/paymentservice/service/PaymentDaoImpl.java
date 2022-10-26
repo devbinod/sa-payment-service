@@ -7,6 +7,7 @@ import edu.miu590.paymentservice.mapper.PaymentMapper;
 import edu.miu590.paymentservice.model.*;
 import edu.miu590.paymentservice.repository.PaymentRepository;
 
+import edu.miu590.paymentservice.util.AppUtil;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -60,6 +61,7 @@ public class PaymentDaoImpl implements PaymentDao {
                 .paymentType(paymentRequestDto.getTokenType())
                 .currency(paymentRequestDto.getCurrency())
                 .status(status)
+                .userId(AppUtil.getCurrentUser())
                 .build();
 
         paymentRepository.save(payment);
